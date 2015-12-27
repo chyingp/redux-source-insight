@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>getting started</title>
+</head>
+<body>
+
+<script src="../js/redux.js"></script>
+
+<script>
+
+var addTodo = function(text){
+    return {
+        type: 'add_todo',
+        text: text
+    };
+};
+
+var addTodos = function(){
+    return {
+        type: 'add_todos',
+        items: Array.prototype.slice.call(arguments, 0)
+    };
+};
+
+var reducer = function(state, action){
+    switch (action.type) {
+        case 'add_todo':
+            return state.concat(action.text);
+        case 'add_todos':
+            return state.concat(action.items);
+        default:
+            return state;
+    }
+};
+
+
+var store = redux.createStore(reducer, []);
+// 注意,关键代码在这里
+var actions = redux.bindActionCreators({
+    addTodo: addTodo,
+    addTodos: addTodos
+}, store.dispatch);
+
+console.log('state is: ' + store.getState());
+
+store.dispatch({type: 'add_todo', text: '读书'});
+store.dispatch({type: 'add_todos', items: ['阅读', '睡觉']});
+console.log('state is: ' + store.getState());  // state is: 读书,阅读,睡觉
+
+actions.addTodo('看电影');
+console.log('state is: ' + store.getState());  // state is: 读书,阅读,睡觉,看电影
+
+actions.addTodos(['刷牙', '洗澡']);
+console.log('state is: ' + store.getState());  // state is: 读书,阅读,睡觉,看电影,刷牙,洗澡
+
+
+</script>
+</body>
+</html>

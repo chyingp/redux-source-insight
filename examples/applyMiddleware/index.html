@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>getting started</title>
+</head>
+<body>
+
+<script src="../js/redux.js"></script>
+
+<script>
+
+    function reducer(state, action){
+        if(typeof state==='undefined') state = [];
+
+        switch(action.type){
+            case 'add_todo':
+                return state.concat(action.text);
+            default:
+                return state;
+        }
+    }
+
+    function addTodo(text){
+        return {
+            type: 'add_todo',
+            text: text
+        };
+    }
+
+    // 这里的 store，并不是 redux.createStore(reducer, initialState) 出来的 store
+    // 而是 {getState: store.getState, dispatch: function() { store.dispatch(action); }}
+    //
+    function logger(store){
+        //
+        return function(next){
+            return function(action){
+                console.log('logger: dispatching ' + action.type);
+                var result = next(action);
+                console.log('logger: next state ' + result);
+                return result;
+            }
+        }
+    }
+
+    function timer(store){
+        return function(next){
+            return function(action){
+                console.log('timer: dispatching ' + action.type);
+                var result = next(action);
+                console.log('timer: next state ' + result);
+                return result;
+            }
+        }
+    }
+
+    var createStoreWidthMiddleware = redux.applyMiddleware(logger, timer)(redux.createStore);
+    var newStore = createStoreWidthMiddleware(reducer);
+    newStore.subscribe(function(){
+        console.log('subscribe: state is : ' + newStore.getState());
+    });
+    console.log( newStore.dispatch(addTodo('reading')) );
+
+</script>
+</body>
+</html>
