@@ -6,6 +6,7 @@ import isPlainObject from './utils/isPlainObject';
  * If the current state is undefined, you must return the initial state.
  * Do not reference these action types directly in your code.
  */
+    // 初始化的时候(redux.createStore(reducer, initialState)时),传的action.type 就是这货啦
 export var ActionTypes = {
   INIT: '@@redux/INIT'
 };
@@ -45,6 +46,7 @@ export default function createStore(reducer, initialState) {
    *
    * @returns {any} The current state tree of your application.
    */
+  // 这个方法没什么好讲的,返回当前的state
   function getState() {
     return currentState;
   }
@@ -57,6 +59,8 @@ export default function createStore(reducer, initialState) {
    * @param {Function} listener A callback to be invoked on every dispatch.
    * @returns {Function} A function to remove this change listener.
    */
+  // 很常见的监听函数添加方式,当store.dispatch 的时候被调用
+  // store.subscribe(listener) 返回一个方法(unscribe),可以用来取消监听
   function subscribe(listener) {
     listeners.push(listener);
     var isSubscribed = true;
@@ -97,6 +101,9 @@ export default function createStore(reducer, initialState) {
    * Note that, if you use a custom middleware, it may wrap `dispatch()` to
    * return something else (for example, a Promise you can await).
    */
+  // 以下情况会报错
+  // 1. 传入的action不是一个对象
+  // 2. 传入的action是个对象,但是action.type 是undefined
   function dispatch(action) {
     if (!isPlainObject(action)) {
       throw new Error(
@@ -118,12 +125,16 @@ export default function createStore(reducer, initialState) {
 
     try {
       isDispatching = true;
+      // 就是这一句啦, 将 currentState 设置为 reducer(currentState, action) 返回的值
       currentState = currentReducer(currentState, action);
     } finally {
       isDispatching = false;
     }
 
+    // 如果有监听函数,就顺序调用
     listeners.slice().forEach(listener => listener());
+
+    // 最后,返回传入的action
     return action;
   }
 
@@ -145,8 +156,12 @@ export default function createStore(reducer, initialState) {
   // When a store is created, an "INIT" action is dispatched so that every
   // reducer returns their initial state. This effectively populates
   // the initial state tree.
+  //
+  // redux.createStore(reducer, initialState) 的时候, 内部会 自己调用 dispatch({ type: ActionTypes.INIT });
+  // 来完成state的初始化
   dispatch({ type: ActionTypes.INIT });
 
+  // 返回的就是这个东东了,只有四个方法
   return {
     dispatch,
     subscribe,
